@@ -1,0 +1,26 @@
+######## INFO ########
+subject ID = TESTM001
+experimenter = RuixLi
+date time = 2021/04/05-16:38:27
+
+######## STIM CONFIG ########
+verti-trial frame = 280
+hori-trial frame = 180
+trial number = 20
+
+square size = 120 deg
+square flip rate = 2 Hz
+sweep speed = 7  deg / sec
+sweep width = 10 deg
+eye distance = 20 cm
+
+######## MONITOR INFO ########
+monitor name = NishioSamsung_24cm_190318 Hz
+resolution = 1600x900 pixel
+size = 70x39 cm
+eye distance = 20 cm
+gaze center = (0, 0)
+
+######## RUNNING LOG ########
+total frame number = 18400
+frame rendered = 18400

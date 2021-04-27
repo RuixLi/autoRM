@@ -1,0 +1,32 @@
+{
+    "subjectID": "THYG6S0113Ma",
+    "experimenter": "RuixLi",
+    "dateTime": "2021/04/05-16:38:27",
+    "dateTimeStamp": "2104051638",
+    "verticalFrame": 280,
+    "horizontalFrame": 180,
+    "trialNum": 20,
+    "interTrialFrame": 40,
+    "totalFrame": 18400,
+    "realFrame": 18400,
+    "monitorName": "NishioSamsung_24cm_190318",
+    "monitorResolution": [
+        1600,
+        900
+    ],
+    "monitorSize": [
+        70,
+        39
+    ],
+    "monitorDisance": 20,
+    "gazeCenter": [
+        0,
+        0
+    ],
+    "squareSizeDeg": 120,
+    "squareSizePix": 15,
+    "squareFlipRate": 2,
+    "barSpdPixPerSec": 12,
+    "barSpdDegPerSec": 12,
+    "barWidth": 20
+}

@@ -173,12 +173,12 @@ maps.degMapAzi = degMapAzi;
 maps.degMapElv = degMapElv;
 
 if exist('savDir', 'var')
-    disp('saving data ...')
+    fprintf('saving data at: %s', savDir)
     fName = ['RMDegMap-' config.subjectID '-' config.dateTimeStamp '.mat'];
     tName = ['RMDegMap-' config.subjectID '-' config.dateTimeStamp '.tiff'];
     maps.savDir = fullfile(savDir,fName);
     save(fullfile(savDir,fName), '-struct', 'maps')
-    saveas(h, fullfile(savDir,tName), '-r300', '-transparent')
+    saveas(h, fullfile(savDir,tName))
 end
 
 if nargout > 0; degMap = maps; end

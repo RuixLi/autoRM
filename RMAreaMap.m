@@ -40,7 +40,7 @@ graddirX = atan2(dhdy,dhdx);
 graddirY = atan2(dvdy,dvdx);
 vdiff = exp(1i*graddirX) .* exp(-1i*graddirY);
 signMap = sin(angle(vdiff));
-signMap(isnan(signMap)==1) = 0;
+signMap(isnan(signMap)) = 0;
 %imview(signMap)
 
 % calculate additional maps with some imaging process tricks
@@ -115,6 +115,7 @@ FOV = degMap.FOV;
 signFOV = cat(3, .7*FOV+.3*signMap, .6*FOV, .7*FOV-0.3*signMap);
 tzFOV = cat(3, .7*FOV+.3*signMapTz, .6*FOV, .7*FOV-0.3*signMapTz);
 bzFOV = 0.6 * degMap.FOV .* signMapBz + 0.3 * degMap.FOV;
+
 %%
 config = degMap.config;
 h = figure('Position',[100,100,900,600]);
@@ -137,14 +138,14 @@ imshow(tzFOV)
 title('visual sign')
 
 ax(5) = subplot('Position',[0.67,0.04,0.3,0.42]);
-imagesc(degMap.degMapAzi)
+imagesc(degMap.degMapAzi,[10 100])
 axis equal; axis tight; axis off;
 title('azimuth')
 try cm = turbo(64); catch ; cm = gray(64); end
 colormap(ax(5),cm)
 
 ax(6) = subplot('Position',[0.67,0.50,0.3,0.42]);
-imagesc(degMap.degMapElv);
+imagesc(degMap.degMapElv, [-30 30]);
 axis equal; axis tight; axis off;
 title('elevation')
 colormap(ax(6),cm)
@@ -154,18 +155,20 @@ maps.FOV = FOV;
 maps.rSignMap = signMap;
 maps.signMap = signMapTz;
 maps.areaMap = signMapBz;
-maps.hitFOV = bzFOV;
+maps.hltFOV = bzFOV;
 maps.signFOV = tzFOV;
 maps.param = param;
 maps.config = config;
 maps.degMapAzi = degMap.degMapAzi;
 maps.degMapElv = degMap.degMapElv;
-savDir = strrep(dataDir,'RMDegMap','RMAreaMap');
-maps.savDir = savDir;
 
-save(savDir, '-struct', 'maps');
-savDir = [savDir(1:end-4) '.tiff'];
-saveas(h, savDir, '-r500', '-transparent')
+if exist('dataDir','var')
+    savDir = strrep(dataDir,'RMDegMap','RMAreaMap');
+    maps.savDir = savDir;
+    save(savDir, '-struct', 'maps');
+    savDir = [savDir(1:end-4) '.tiff'];
+    saveas(h, savDir)
+end
 
 if nargout > 0; areaMap = maps; end
 end

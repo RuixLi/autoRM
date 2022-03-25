@@ -146,7 +146,7 @@ imagesc(imgaussfilt(degMapAzi,3))
 title('visual azimuth')
 colorbar;
 axis tight; axis equal; axis off;
-try cm = turbo(128); catch; cm=gray(128); end
+try cm = hsv(128); catch; cm=gray(128); end
 colormap(ax(2), cm)
 ax(3) = subplot('Position',[0.68,0.1,0.3,0.9]);
 imagesc(imgaussfilt(degMapElv,3))
@@ -174,8 +174,8 @@ maps.degMapElv = degMapElv;
 
 if exist('savDir', 'var')
     fprintf('saving data at: %s', savDir)
-    fName = ['RMDegMap-' config.subjectID '-' config.dateTimeStamp '.mat'];
-    tName = ['RMDegMap-' config.subjectID '-' config.dateTimeStamp '.tiff'];
+    fName = ['RMDegMap-' config.animalID '-' config.DTstamp '.mat'];
+    tName = ['RMDegMap-' config.animalID '-' config.DTstamp '.tif'];
     maps.savDir = fullfile(savDir,fName);
     save(fullfile(savDir,fName), '-struct', 'maps')
     saveas(h, fullfile(savDir,tName))

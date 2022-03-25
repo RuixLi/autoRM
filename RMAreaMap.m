@@ -56,7 +56,7 @@ graddirX = atan2(dhdy,dhdx);
 graddirY = atan2(dvdy,dvdx);
 vdiff = exp(1i*graddirX) .* exp(-1i*graddirY);
 signMapU = sin(angle(vdiff));
-signMapU(isnan(signMapU)==1) = 0;
+signMapU(isnan(signMapU)) = 0;
 signMapFt = imgaussfilt(signMapU, param.signMapFltSigma);
 signMapThrd = signMapFt;
 signMapThreshold = (param.signMapThreshold * std(signMapFt(:)));
@@ -121,8 +121,7 @@ config = degMap.config;
 h = figure('Position',[100,100,900,600]);
 ax(1) = subplot('Position',[0.07,0.50,0.3,0.42]);
 imshow(FOV)
-title([config.subjectID '-' config.dateTimeStamp])
-cm = gray(128);
+title([config.animalID '-' config.DTstamp])
 
 ax(2) = subplot('Position',[0.07,0.04,0.3,0.42]);
 imshow(bzFOV)
@@ -138,14 +137,14 @@ imshow(tzFOV)
 title('visual sign')
 
 ax(5) = subplot('Position',[0.67,0.04,0.3,0.42]);
-imagesc(degMap.degMapAzi,[10 100])
+imagesc(degMap.degMapAzi)
 axis equal; axis tight; axis off;
 title('azimuth')
-try cm = turbo(64); catch ; cm = gray(64); end
+try cm = hsv(128); catch ; cm = gray(64); end
 colormap(ax(5),cm)
 
 ax(6) = subplot('Position',[0.67,0.50,0.3,0.42]);
-imagesc(degMap.degMapElv, [-30 30]);
+imagesc(degMap.degMapElv);
 axis equal; axis tight; axis off;
 title('elevation')
 colormap(ax(6),cm)
@@ -166,7 +165,7 @@ if exist('dataDir','var')
     savDir = strrep(dataDir,'RMDegMap','RMAreaMap');
     maps.savDir = savDir;
     save(savDir, '-struct', 'maps');
-    savDir = [savDir(1:end-4) '.tiff'];
+    savDir = [savDir(1:end-4) '.tif'];
     saveas(h, savDir)
 end
 

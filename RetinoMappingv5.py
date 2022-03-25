@@ -28,7 +28,7 @@ subjectID = 'THYG6S0113Ma'  # mouse ID, used to name log files
 experimenter = ''
 usingDAQ = False  # set True to use DAQ
 NIcounterPort = b"Dev3/ctr0"  # the counter port name
-savDir = ''  # save to here if defined
+saveDir = ''  # save to here if defined
 trialNum = 20  # number of trial for each direction
 verbose = False  # print the current progress during stim
 printIntervel = 10  # frame intervel to print
@@ -371,10 +371,10 @@ if savelog == True:
     logName = 'RMlog' + '-' + subjectID + '-' + dateTimeStamp + '.txt'
     print('logging...')
 
-    if not savDir:
+    if not saveDir:
         expLog = open(logName, 'w+')
     else:
-        expLog = open(os.path.join(savDir, logName), 'w+')
+        expLog = open(os.path.join(saveDir, logName), 'w+')
 
     expLog.write('########## RM-LOG ##########\n')
     expLog.write('######### BASIC INFO #########\n')
@@ -442,12 +442,12 @@ if savelog == True:
         "visualElv": visualElv
     }
 
-    if not savDir:
+    if not saveDir:
         f = open(cnfgName, 'w')
         json.dump(cnfgDict, f, sort_keys=True, indent=4)
         f.close()
     else:
-        f = open(os.path.join(savDir, cnfgName), 'w')
+        f = open(os.path.join(saveDir, cnfgName), 'w')
         json.dump(cnfgDict, f, sort_keys=True, indent=4)
         f.close()
 

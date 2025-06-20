@@ -12,7 +12,7 @@ function degMap = RMDegMap(stack, config)
 
 %% data loading
 if nargin == 0 % no input
-    [fname,fpath] = uigetfile('*.mat','select data file ...');
+    [fname,fpath] = uigetfile('*.dat','select data file ...');
     if fname == 0; return; end
     pause(1)
     [configName,configPath] = uigetfile('*.json','select config file ...');
@@ -45,20 +45,23 @@ end
 config = jsondecode(fileread(configDir));
 disp('config file loaded ...')
 disp('and check configurations ...')
-load(dataDir,'info')
-T = info.Loops;
+%load(dataDir,'info')
+stack = single(flipud(loadRaw(dataDir)));
+[d1,d2,T] = size(stack);
+%T = info.Loops;
+
 
 if T ~= config.realFrame; error('imaging file has wrong input configs'); end
 verticalTrial = config.verticalFrame;
 horizontalTrial = config.horizontalFrame;
 interTrialFrame = config.interTrialFrame;
 trialNum = config.trialNum;
-gazeCenter = config.gazeCenter;
-monitorResolution = config.monitorResolution;
-monitorDisance = config.monitorDisance;
-monitorSize = config.monitorSize;
-frameRate = round(1000*T / (info.dTimeMSec(end) - info.dTimeMSec(1)));
-config.frameRate = frameRate;
+% gazeCenter = config.gazeCenter;
+% monitorResolution = config.monitorResolution;
+% monitorDisance = config.monitorDisance;
+% monitorSize = config.monitorSize;
+%frameRate = round(1000*T / (info.dTimeMSec(end) - info.dTimeMSec(1)));
+%config.frameRate = frameRate;
 frameNumL2R = trialNum * verticalTrial;
 frameNumR2L = frameNumL2R;
 frameNumD2U = trialNum * horizontalTrial;
@@ -67,11 +70,16 @@ totalFrame = frameNumL2R + frameNumR2L + frameNumD2U + frameNumU2D;
 
 if totalFrame ~= config.realFrame; error('imaging file has wrong input configs'); end
 
+FOV = rescale(stack(:,:,1));
+stack_reshaped = reshape(stack, [], T);
+winLen = max(3, round(T * 0.1));  % at least 3 frames
+baseline = movmedian(stack_reshaped, winLen, 2);
+stack_dff = (stack_reshaped - baseline) ./ baseline;
+stack = reshape(stack_dff, d1, d2, T);
+
 % normaluize to dF/F
 disp('processing data ...')
-load(dataDir,'stack')
-[d1,d2,~] = size(stack);
-FOV = rescale(stack(:,:,1));
+
 dataL2R = stack(:,:,1:frameNumL2R);
 dataR2L = stack(:,:,frameNumL2R+1:frameNumL2R+frameNumR2L);
 dataD2U = stack(:,:,frameNumL2R+frameNumR2L+1:frameNumL2R+frameNumR2L+frameNumD2U);
@@ -81,18 +89,18 @@ avgL2R = squeeze(mean(reshape(double(dataL2R),d1,d2,verticalTrial,trialNum),4));
 avgR2L = squeeze(mean(reshape(double(dataR2L),d1,d2,verticalTrial,trialNum),4));
 avgD2U = squeeze(mean(reshape(double(dataD2U),d1,d2,horizontalTrial,trialNum),4));
 avgU2D = squeeze(mean(reshape(double(dataU2D),d1,d2,horizontalTrial,trialNum),4));
-avgL2R = avgL2R./repmat(mean(avgL2R,3),[1,1,verticalTrial]);
-avgR2L = avgR2L./repmat(mean(avgR2L,3),[1,1,verticalTrial]);
-avgD2U = avgD2U./repmat(mean(avgD2U,3),[1,1,horizontalTrial]);
-avgU2D = avgU2D./repmat(mean(avgU2D,3),[1,1,horizontalTrial]);
+% avgL2R = avgL2R./repmat(mean(avgL2R,3),[1,1,verticalTrial]);
+% avgR2L = avgR2L./repmat(mean(avgR2L,3),[1,1,verticalTrial]);
+% avgD2U = avgD2U./repmat(mean(avgD2U,3),[1,1,horizontalTrial]);
+% avgU2D = avgU2D./repmat(mean(avgU2D,3),[1,1,horizontalTrial]);
 avgL2R(isnan(avgL2R)) = 0;
 avgR2L(isnan(avgR2L)) = 0;
 avgD2U(isnan(avgD2U)) = 0;
 avgU2D(isnan(avgU2D)) = 0;
-avgL2R = avgL2R - movmean(avgL2R,30,3);
-avgR2L = avgR2L - movmean(avgR2L,30,3);
-avgD2U = avgD2U - movmean(avgD2U,30,3);
-avgU2D = avgU2D - movmean(avgU2D,30,3);
+% avgL2R = avgL2R - movmean(avgL2R,30,3);
+% avgR2L = avgR2L - movmean(avgR2L,30,3);
+% avgD2U = avgD2U - movmean(avgD2U,30,3);
+% avgU2D = avgU2D - movmean(avgU2D,30,3);
 clipL2R = avgL2R(:,:,interTrialFrame+1:end);
 clipR2L = avgR2L(:,:,interTrialFrame+1:end);
 clipD2U = avgD2U(:,:,interTrialFrame+1:end);
@@ -107,31 +115,42 @@ clipR2L = binning(clipR2L, [binSiz, binSiz, 1]) / binSiz^2;
 clipD2U = binning(clipD2U, [binSiz, binSiz, 1]) / binSiz^2;
 clipU2D = binning(clipU2D, [binSiz, binSiz, 1]) / binSiz^2;
 end
+
 % calculate phase maps using fast fourier transform
+
 ffdL2R = fft(clipL2R, [], 3);
 ffdR2L = fft(clipR2L, [], 3);
 ffdD2U = fft(clipD2U, [], 3);
 ffdU2D = fft(clipU2D, [], 3);
+
 phaseL2R = 2*pi - wrapTo2Pi(angle(ffdL2R(:,:,2))+2*pi);
 phaseR2L = 2*pi - wrapTo2Pi(angle(ffdR2L(:,:,2))+2*pi);
 phaseD2U = 2*pi - wrapTo2Pi(angle(ffdD2U(:,:,2))+2*pi);
 phaseU2D = 2*pi - wrapTo2Pi(angle(ffdU2D(:,:,2))+2*pi);
 
 % calculate visual field
-disp('get degree maps ...')
-gazePointX = 0.5 * monitorSize(1) * (monitorResolution(1) + gazeCenter(1)) / monitorResolution(1);
-gazePointY = 0.5 * monitorSize(2) * (monitorResolution(2) + gazeCenter(2)) / monitorResolution(2);
-visAzimuth = rad2deg(atan(gazePointX/monitorDisance)) + rad2deg(atan((monitorSize(1) - gazePointX)/monitorDisance));
-visElevation = rad2deg(atan(gazePointY/monitorDisance)) + rad2deg(atan((monitorSize(2) - gazePointY)/monitorDisance));
+% disp('get degree maps ...')
+% gazePointX = 0.5 * monitorSize(1) * (monitorResolution(1) + gazeCenter(1)) / monitorResolution(1);
+% gazePointY = 0.5 * monitorSize(2) * (monitorResolution(2) + gazeCenter(2)) / monitorResolution(2);
+% visAzimuth = rad2deg(atan(gazePointX/monitorDisance)) + rad2deg(atan((monitorSize(1) - gazePointX)/monitorDisance));
+% visElevation = rad2deg(atan(gazePointY/monitorDisance)) + rad2deg(atan((monitorSize(2) - gazePointY)/monitorDisance));
+% 
+% 
+% degMapL2R = visAzimuth * phaseL2R / (2*pi);
+% degMapR2L = visAzimuth * (1 - phaseR2L / (2*pi));
+% degMapD2U = visElevation * phaseD2U / (2*pi) - rad2deg(atan(gazePointY/monitorDisance));
+% degMapU2D = visElevation * (1 - phaseU2D / (2*pi)) - rad2deg(atan(gazePointY/monitorDisance));
 
-degMapL2R = visAzimuth * phaseL2R / (2*pi);
-degMapR2L = visAzimuth * (1 - phaseR2L / (2*pi));
-degMapD2U = visElevation * phaseD2U / (2*pi) - rad2deg(atan(gazePointY/monitorDisance));
-degMapU2D = visElevation * (1 - phaseU2D / (2*pi)) - rad2deg(atan(gazePointY/monitorDisance));
+degMapL2R = rescale(phaseL2R / (2*pi), config.visualAzi(1), config.visualAzi(2));
+degMapR2L = rescale(1 - phaseR2L / (2*pi), config.visualAzi(1), config.visualAzi(2));
+degMapD2U = rescale(phaseD2U / (2*pi), config.visualElv(1), config.visualElv(2));
+degMapU2D = rescale(1 - phaseU2D / (2*pi), config.visualElv(1), config.visualElv(2));
 
 degMapAzi = (degMapL2R + degMapR2L) / 2;
 degMapElv = (degMapD2U + degMapU2D) / 2;
 
+% degMapAzi = imbilatfilt(degMapAzi,12,2);
+% degMapElv = imbilatfilt(degMapElv,12,2);
 
 h = figure('Position',[200,200,900,320]);
 ax(1) = subplot('Position',[0.03,0.1,0.3,0.9]);
@@ -173,7 +192,7 @@ maps.degMapAzi = degMapAzi;
 maps.degMapElv = degMapElv;
 
 if exist('savDir', 'var')
-    fprintf('saving data at: %s', savDir)
+    fprintf('saving data at: %s\n', savDir)
     fName = ['RMDegMap-' config.animalID '-' config.DTstamp '.mat'];
     tName = ['RMDegMap-' config.animalID '-' config.DTstamp '.tif'];
     maps.savDir = fullfile(savDir,fName);

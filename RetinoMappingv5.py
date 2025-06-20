@@ -24,10 +24,10 @@ import json
 
 ################################
 # -- expeirment information
-subjectID = 'THYG6S0113Ma'  # mouse ID, used to name log files
-experimenter = ''
-usingDAQ = False  # set True to use DAQ
-NIcounterPort = b"Dev3/ctr0"  # the counter port name
+subjectID = 'M01'  # mouse ID, used to name log files
+experimenter = 'nakayama'
+usingDAQ = True  # set True to use DAQ
+NIcounterPort = b"Dev2/ctr0"  # the counter port name
 saveDir = ''  # save to here if defined
 trialNum = 20  # number of trial for each direction
 verbose = False  # print the current progress during stim
@@ -81,7 +81,10 @@ class DAQCounter:
         self.timeout = ctypes.c_double(10.0)
 
         print('DAQ-CNT: start ...')
+
+
         CHK(nidaq.DAQmxCreateTask(self.taskName, ctypes.byref(self.taskHandel)))
+        
         # DAQmxCreateTask(const char taskName, taskHandel*) (* is output)
         CHK(nidaq.DAQmxCreateCICountEdgesChan(self.taskHandel, self.lines, "", self.falling, self.initialCount, self.countUp))
         # DAQmxCreateCICountEdgesChan(taskHandel, const char lines, const char name, int32 edge, uInt32 initialCount, int32 countDirection)
@@ -201,7 +204,7 @@ monitor = monitors.Monitor(name=monitorName,
 monitor.setSizePix(monitorResolution)
 
 myWin = visual.Window(size=monitorResolution,
-                      fullscr=False,  # True for full screen
+                      fullscr=True,  # True for full screen
                       allowGUI=False,
                       color=[0, 0, 0],  # [0,0,0] is grey and [-1,-1,-1] is black
                       units='pix',

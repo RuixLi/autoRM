@@ -137,14 +137,14 @@ imshow(tzFOV)
 title('visual sign')
 
 ax(5) = subplot('Position',[0.67,0.04,0.3,0.42]);
-imagesc(degMap.degMapAzi)
+imagesc(imgaussfilt(degMap.degMapAzi,1))
 axis equal; axis tight; axis off;
 title('azimuth')
 try cm = hsv(128); catch ; cm = gray(64); end
 colormap(ax(5),cm)
 
 ax(6) = subplot('Position',[0.67,0.50,0.3,0.42]);
-imagesc(degMap.degMapElv);
+imagesc(imgaussfilt(degMap.degMapElv,1));
 axis equal; axis tight; axis off;
 title('elevation')
 colormap(ax(6),cm)
